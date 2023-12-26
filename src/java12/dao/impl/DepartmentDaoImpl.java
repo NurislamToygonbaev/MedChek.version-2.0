@@ -24,7 +24,7 @@ public class DepartmentDaoImpl implements DepartmentDao {
         boolean b = dataBase.getAll().stream()
                 .flatMap(hospital -> hospital.getDepartments().stream())
                 .anyMatch(department1 -> department1.getDepartmentName().equalsIgnoreCase(department.getDepartmentName()));
-        if (b) throw new NotFoundException("Department with name: "+department.getDepartmentName()+" already have");
+        if (b) throw new NotFoundException("Department with name: " + department.getDepartmentName() + " already have");
         Optional<Hospital> first = dataBase.getAll().stream()
                 .filter(hospital -> hospital.getId().equals(hospitalId))
                 .findFirst();
@@ -37,14 +37,17 @@ public class DepartmentDaoImpl implements DepartmentDao {
 
     @Override
     public String remove(Long id) {
-        Optional<Department> first = getAllDepartments().stream()
+        Optional<Department> first = dataBase.getAll().stream()
+                .flatMap(hospital -> hospital.getDepartments().stream())
                 .filter(department -> department.getId().equals(id))
                 .findFirst();
-        if (first.isPresent()){
-            getAllDepartments().remove(first.get());
-            return "Successfully deleted";
-        }
-        else throw new NotFoundException("Department with id: " + id + " not found");
+        first.ifPresent(department -> {
+            dataBase.getAll().forEach(hospital -> hospital.getDepartments().removeIf(d -> d.getId().equals(id)));
+        });
+
+        return first.map(department -> "Successfully deleted").orElseThrow(() ->
+                new NotFoundException("Department with id: " + id + " not found"));
+
     }
 
     @Override

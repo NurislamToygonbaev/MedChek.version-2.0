@@ -11,6 +11,7 @@ import java12.models.Hospital;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class DoctorDaoImpl implements DoctorDao {
 
@@ -30,7 +31,6 @@ public class DoctorDaoImpl implements DoctorDao {
 
     @Override
     public String add(Long hospitalId, Doctor doctor) {
-
         Optional<Hospital> first = dataBase.getAll().stream()
                 .filter(hospital -> hospital.getId().equals(hospitalId))
                 .findFirst();
@@ -44,14 +44,22 @@ public class DoctorDaoImpl implements DoctorDao {
 
     @Override
     public String remove(Long id) {
-        Optional<Doctor> first = getAll().stream()
+        Optional<Doctor> first = dataBase.getAll().stream()
+                .flatMap(hospital -> Stream.concat(hospital.getDoctors().stream(),
+                        hospital.getDepartments().stream()
+                                .flatMap(department -> department.getDoctors().stream())))
                 .filter(doctor -> doctor.getId().equals(id))
                 .findFirst();
-        if (first.isPresent()){
-            getAll().remove(first.get());
-            return "Successfully deleted";
-        }
-        else throw new NotFoundException("Doctor with id: " + id + " not found");
+
+        first.ifPresent(doctor -> {
+            for (Hospital hospital : dataBase.getAll()) {
+                hospital.getDoctors().remove(doctor);
+                hospital.getDepartments().forEach(department -> department.getDoctors().remove(doctor));
+            }
+        });
+
+        return first.map(doctor -> "Successfully deleted").orElseThrow(() ->
+            new NotFoundException("Doctor with id: " + id + " not found"));
     }
 
     @Override
@@ -59,6 +67,9 @@ public class DoctorDaoImpl implements DoctorDao {
         List<Doctor> doctors = new ArrayList<>();
         for (Hospital hospital : dataBase.getAll()) {
             doctors.addAll(hospital.getDoctors());
+            for (Department department : hospital.getDepartments()) {
+                doctors.addAll(department.getDoctors());
+            }
         }
         if (!doctors.isEmpty()) return doctors;
         else throw new NotFoundException("No doctors found in any hospital");

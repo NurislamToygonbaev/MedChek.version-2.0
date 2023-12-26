@@ -38,14 +38,15 @@ public class PatientDaoImpl implements PatientDao {
 
     @Override
     public String delete(Long id) {
-        List<Patient> patients = getAll();
-        Optional<Patient> first = patients.stream()
+        Optional<Patient> first = dataBase.getAll().stream()
+                .flatMap(hospital -> hospital.getPatients().stream())
                 .filter(patient -> patient.getId().equals(id))
                 .findFirst();
-        if (first.isPresent()) {
-            patients.remove(first.get());
-            return "Successfully deleted";
-        } else throw new NotFoundException("Patient with id: " + id + " not found");
+        first.ifPresent(patient -> {
+            dataBase.getAll().forEach(hospital -> hospital.getPatients().removeIf(patient1 -> patient1.getId().equals(id)));
+        });
+        return first.map(patient -> "Successfully deleted").orElseThrow(() ->
+                new NotFoundException("Patient with id: " + id + " not found"));
     }
 
     @Override

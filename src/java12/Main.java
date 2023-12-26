@@ -30,9 +30,7 @@ public class Main {
             try {
                 menu();
                 switch (scanner.nextInt()) {
-                    case 0 -> {
-                        break OuterLoop;
-                    }
+                    case 0 -> {break OuterLoop;}
                     case 1 -> System.out.println(hospital.addHospital(new Hospital("Городская больница", "Ахунбаева 166")));
                     case 2 -> System.out.println(hospital.findHospitalById(1L));
                     case 3 -> System.out.println(hospital.getAllHospital());
