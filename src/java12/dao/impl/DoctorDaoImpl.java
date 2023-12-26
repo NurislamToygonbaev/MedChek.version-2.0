@@ -126,19 +126,6 @@ public class DoctorDaoImpl implements DoctorDao {
             doctor1.setGender(doctor.getGender());
             doctor1.setExperienceYear(doctor.getExperienceYear());
             return "Successfully updated";
-        }
-        Optional<Doctor> first1 = dataBase.getAll().stream()
-                .flatMap(hospital -> hospital.getDepartments().stream())
-                .flatMap(department -> department.getDoctors().stream())
-                .filter(doctor1 -> doctor1.getId().equals(id))
-                .findFirst();
-        if (first1.isPresent()) {
-            Doctor doctor1 = first1.get();
-            doctor1.setFirstName(doctor.getFirstName());
-            doctor1.setLastName(doctor.getLastName());
-            doctor1.setGender(doctor.getGender());
-            doctor1.setExperienceYear(doctor.getExperienceYear());
-            return "Successfully updated";
         } else throw new NotFoundException("Doctor with id: " + id + " not found");
     }
 }

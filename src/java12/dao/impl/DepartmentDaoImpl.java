@@ -44,7 +44,6 @@ public class DepartmentDaoImpl implements DepartmentDao {
         first.ifPresent(department -> {
             dataBase.getAll().forEach(hospital -> hospital.getDepartments().removeIf(d -> d.getId().equals(id)));
         });
-
         return first.map(department -> "Successfully deleted").orElseThrow(() ->
                 new NotFoundException("Department with id: " + id + " not found"));
 
